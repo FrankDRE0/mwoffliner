@@ -34,6 +34,7 @@ type ArticleDetail = PageInfo & {
   timestamp?: string // revisions.0.timestamp
   revisionId?: number // revisions.0.revid
   internalThumbnailUrl?: string // internalThumbnailUrl
+  fullImageUrl?: string
   nextArticleId?: string
   prevArticleId?: string
   missing?: string
