@@ -6,7 +6,16 @@ export function makeArticleListItem(dump: Dump, articleEntry: ArticleDetail) {
 }
 
 export function makeArticleImageTile(dump: Dump, articleEntry: ArticleDetail) {
-  return `<a class="item" href="${encodeArticleIdForZimHtmlUrl(articleEntry.title.replace(/ /g, '_'))}">
-            <figure><img loading="lazy" src="${articleEntry.internalThumbnailUrl}" />
-            <figcaption>${(articleEntry.title || '').replace(/_/g, ' ')}</figcaption></figure></a>\n`
+  // Use thumbnail for display
+  const thumb = articleEntry.internalThumbnailUrl;
+  // Use full image for link, fallback to thumbnail if not available
+  const full = articleEntry.fullImageUrl || thumb;
+
+  return `<a class="item" href="${full}" target="_blank">
+            <figure>
+              <img loading="lazy" src="${thumb}" />
+              <figcaption>${(articleEntry.title || '').replace(/_/g, ' ')}</figcaption>
+            </figure>
+          </a>\n`;
 }
+

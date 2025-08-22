@@ -639,22 +639,30 @@ async function execute(argv: any) {
   async function fetchArticleDetail(articleId: string) {
     return articleDetailXId.get(articleId)
   }
-
+  
   async function updateArticleThumbnail(articleDetail: any, articleId: string) {
-    const imageUrl = articleDetail.thumbnail
-    
-    const { width: oldWidth } = getSizeFromUrl(imageUrl.source);
-    const suitableResUrl = imageUrl.source.replace(`/${oldWidth}px-`, '/500px-').replace(`-${oldWidth}px-`, '-500px-')
-    const { mult, width } = getSizeFromUrl(suitableResUrl)
-    
-  const path = getMediaBase(suitableResUrl, false)
+    if (!articleDetail.thumbnail) return;
 
-    articleDetail.internalThumbnailUrl = getRelativeFilePath('Main_Page', getMediaBase(suitableResUrl, true))
+    const thumbUrl = articleDetail.thumbnail.source;
 
+    // --- Small thumbnail for main page (e.g., 200px) ---
+    const { width: oldWidth } = getSizeFromUrl(thumbUrl);
+    const thumbResUrl = thumbUrl.replace(`/${oldWidth}px-`, '/200px-').replace(`-${oldWidth}px-`, '-200px-');
+    const { mult: thumbMult, width: thumbWidth } = getSizeFromUrl(thumbResUrl);
+    articleDetail.internalThumbnailUrl = getRelativeFilePath('Main_Page', getMediaBase(thumbResUrl, true));
+
+    // --- Full-resolution image for article display ---
+    const fullResUrl = thumbUrl; // original URL, full resolution
+    const { mult: fullMult, width: fullWidth } = getSizeFromUrl(fullResUrl);
+    const fullPath = getMediaBase(fullResUrl, false);
+    articleDetail.fullImageUrl = getRelativeFilePath('Main_Page', fullPath);
+
+    // --- Queue both thumbnail and full-res image for download ---
     await Promise.all([
-      filesToDownloadXPath.set(path, { url: urlHelper.serializeUrl(suitableResUrl), mult, width, kind: 'image' } as FileDetail),
+      filesToDownloadXPath.set(thumbResUrl, { url: urlHelper.serializeUrl(thumbResUrl), mult: thumbMult, width: thumbWidth, kind: 'image' } as FileDetail),
+      filesToDownloadXPath.set(fullPath, { url: urlHelper.serializeUrl(fullResUrl), mult: fullMult, width: fullWidth, kind: 'image' } as FileDetail),
       articleDetailXId.set(articleId, articleDetail),
-    ])
+    ]);
   }
 
   async function getThumbnailsData(): Promise<void> {
