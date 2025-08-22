@@ -419,8 +419,6 @@ async function execute(argv: any) {
       await addWebpJsScripts(zimCreator)
     }
 
-    await gg
-
     if (!mainPage) {
       logger.log('Checking Main Page rendering')
       await createIndexPage(dump, zimCreator, true)
@@ -644,7 +642,8 @@ async function execute(argv: any) {
 
   async function updateArticleThumbnail(articleDetail: any, articleId: string) {
     const imageUrl = articleDetail.thumbnail
-
+    
+    const { width: oldWidth } = getSizeFromUrl(imageUrl.source);
     const suitableResUrl = imageUrl.source.replace(`/${oldWidth}px-`, '/500px-').replace(`-${oldWidth}px-`, '-500px-')
     const { mult, width } = getSizeFromUrl(suitableResUrl)
     
