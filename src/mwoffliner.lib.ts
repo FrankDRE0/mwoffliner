@@ -643,22 +643,31 @@ async function execute(argv: any) {
   async function updateArticleThumbnail(articleDetail: any, articleId: string) {
     const imageUrl = articleDetail.thumbnail;
 
-    // Keep the original thumbnail display URL
+    // Keep thumbnail for display
     const { width: oldWidth } = getSizeFromUrl(imageUrl.source);
     const thumbUrl = imageUrl.source.replace(`/${oldWidth}px-`, '/500px-').replace(`-${oldWidth}px-`, '-500px-');
-    
-    // Store full-resolution URL
+
+    // Full-res URL (original image)
     const fullUrl = imageUrl.source;
 
-    // Compute internal paths
+    // Internal paths for ZIM
     const thumbPath = getMediaBase(thumbUrl, false);
-    const thumbInternalPath = getRelativeFilePath('Main_Page', getMediaBase(thumbUrl, true));
+    const fullPath = getMediaBase(fullUrl, false);
 
-    articleDetail.internalThumbnailUrl = thumbInternalPath;
-    articleDetail.fullImageUrl = fullUrl;  // <-- add full-resolution link
+    const thumbInternal = getRelativeFilePath('Main_Page', getMediaBase(thumbUrl, true));
+    const fullInternal = getRelativeFilePath('Main_Page', getMediaBase(fullUrl, true));
+
+    // Update article detail
+    articleDetail.internalThumbnailUrl = thumbInternal;
+    articleDetail.fullImageUrl = fullInternal;
 
     await Promise.all([
+      // Download thumbnail for ZIM display
       filesToDownloadXPath.set(thumbPath, { url: urlHelper.serializeUrl(thumbUrl), ...getSizeFromUrl(thumbUrl), kind: 'image' } as FileDetail),
+
+      // Download full-res image into ZIM
+      filesToDownloadXPath.set(fullPath, { url: urlHelper.serializeUrl(fullUrl), ...getSizeFromUrl(fullUrl), kind: 'image' } as FileDetail),
+
       articleDetailXId.set(articleId, articleDetail),
     ]);
   }
