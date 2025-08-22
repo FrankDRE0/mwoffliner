@@ -419,7 +419,7 @@ async function execute(argv: any) {
       await addWebpJsScripts(zimCreator)
     }
 
-    await getThumbnailsData()
+    await gg
 
     if (!mainPage) {
       logger.log('Checking Main Page rendering')
@@ -645,10 +645,10 @@ async function execute(argv: any) {
   async function updateArticleThumbnail(articleDetail: any, articleId: string) {
     const imageUrl = articleDetail.thumbnail
 
-    const { width: oldWidth } = getSizeFromUrl(imageUrl.source)
     const suitableResUrl = imageUrl.source.replace(`/${oldWidth}px-`, '/500px-').replace(`-${oldWidth}px-`, '-500px-')
     const { mult, width } = getSizeFromUrl(suitableResUrl)
-    const path = getMediaBase(suitableResUrl, false)
+    
+  const path = getMediaBase(suitableResUrl, false)
 
     articleDetail.internalThumbnailUrl = getRelativeFilePath('Main_Page', getMediaBase(suitableResUrl, true))
 
@@ -661,7 +661,7 @@ async function execute(argv: any) {
   async function getThumbnailsData(): Promise<void> {
     if (customMainPage || !articleList || articleListLines.length <= MIN_IMAGE_THRESHOLD_ARTICLELIST_PAGE) return
 
-    logger.log('Updating article thumbnails for articles')
+    logger.log('Updating article thumbna  ils for articles')
 
     let articleIndex = 0
     let articlesWithImages = 0
