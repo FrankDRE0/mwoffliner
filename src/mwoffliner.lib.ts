@@ -641,29 +641,28 @@ async function execute(argv: any) {
   }
   
   async function updateArticleThumbnail(articleDetail: any, articleId: string) {
-    if (!articleDetail.thumbnail) return;
+    const imageUrl = articleDetail.thumbnail;
 
-    const thumbUrl = articleDetail.thumbnail.source;
+    // Keep the original thumbnail display URL
+    const { width: oldWidth } = getSizeFromUrl(imageUrl.source);
+    const thumbUrl = imageUrl.source.replace(`/${oldWidth}px-`, '/500px-').replace(`-${oldWidth}px-`, '-500px-');
+    
+    // Store full-resolution URL
+    const fullUrl = imageUrl.source;
 
-    // --- Small thumbnail for main page (e.g., 200px) ---
-    const { width: oldWidth } = getSizeFromUrl(thumbUrl);
-    const thumbResUrl = thumbUrl.replace(`/${oldWidth}px-`, '/200px-').replace(`-${oldWidth}px-`, '-200px-');
-    const { mult: thumbMult, width: thumbWidth } = getSizeFromUrl(thumbResUrl);
-    articleDetail.internalThumbnailUrl = getRelativeFilePath('Main_Page', getMediaBase(thumbResUrl, true));
+    // Compute internal paths
+    const thumbPath = getMediaBase(thumbUrl, false);
+    const thumbInternalPath = getRelativeFilePath('Main_Page', getMediaBase(thumbUrl, true));
 
-    // --- Full-resolution image for article display ---
-    const fullResUrl = thumbUrl; // original URL, full resolution
-    const { mult: fullMult, width: fullWidth } = getSizeFromUrl(fullResUrl);
-    const fullPath = getMediaBase(fullResUrl, false);
-    articleDetail.fullImageUrl = getRelativeFilePath('Main_Page', fullPath);
+    articleDetail.internalThumbnailUrl = thumbInternalPath;
+    articleDetail.fullImageUrl = fullUrl;  // <-- add full-resolution link
 
-    // --- Queue both thumbnail and full-res image for download ---
     await Promise.all([
-      filesToDownloadXPath.set(thumbResUrl, { url: urlHelper.serializeUrl(thumbResUrl), mult: thumbMult, width: thumbWidth, kind: 'image' } as FileDetail),
-      filesToDownloadXPath.set(fullPath, { url: urlHelper.serializeUrl(fullResUrl), mult: fullMult, width: fullWidth, kind: 'image' } as FileDetail),
+      filesToDownloadXPath.set(thumbPath, { url: urlHelper.serializeUrl(thumbUrl), ...getSizeFromUrl(thumbUrl), kind: 'image' } as FileDetail),
       articleDetailXId.set(articleId, articleDetail),
     ]);
   }
+
 
   async function getThumbnailsData(): Promise<void> {
     if (customMainPage || !articleList || articleListLines.length <= MIN_IMAGE_THRESHOLD_ARTICLELIST_PAGE) return
